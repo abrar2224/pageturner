@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — PageTurner</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-container { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .admin-header { text-align: center; margin-bottom: 3rem; }
+    .admin-header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .admin-form-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem; }
+    .form-section { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+    .form-section:last-child { border-bottom: none; }
+    .form-section h2 { font-size: 1.2rem; margin-bottom: 1.25rem; color: var(--primary); }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 0.6rem; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 0.75rem 1rem; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--bg);
+      color: var(--text); font-size: 0.9rem; outline: none;
+      transition: border-color 0.2s; font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .file-input-wrap { position: relative; }
+    .file-input-label {
+      display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+      padding: 1.5rem; border: 2px dashed var(--border); border-radius: 12px;
+      background: rgba(108,99,255,0.05); cursor: pointer; transition: all 0.2s;
+      color: var(--text2); font-weight: 600;
+    }
+    .file-input-label:hover { border-color: var(--primary); background: rgba(108,99,255,0.1); color: var(--primary); }
+    .file-input-label.dragover { border-color: var(--primary); background: rgba(108,99,255,0.15); }
+    .file-input { display: none; }
+    .file-preview { margin-top: 1rem; }
+    .file-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+    .file-name { flex: 1; font-size: 0.9rem; color: var(--text2); }
+    .file-remove { cursor: pointer; color: var(--accent); font-weight: 700; }
+    .cover-preview { margin-top: 1rem; }
+    .cover-img { width: 120px; height: 170px; object-fit: cover; border-radius: 10px; border: 2px solid var(--border); }
+    .toc-items, .learn-items { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .item-input-row { display: flex; gap: 0.5rem; align-items: center; }
+    .item-input-row input { flex: 1; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem; outline: none; }
+    .item-input-row button { padding: 0.6rem 0.75rem; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .item-input-row button:hover { opacity: 0.8; }
+    .add-item-btn { margin-top: 0.75rem; padding: 0.6rem 1rem; border-radius: 8px; background: rgba(108,99,255,0.1); color: var(--primary); font-weight: 600; cursor: pointer; border: 1px solid var(--primary); }
+    .add-item-btn:hover { background: rgba(108,99,255,0.2); }
+    .form-actions { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+    .btn-submit, .btn-cancel { flex: 1; min-width: 150px; padding: 1rem 1.5rem; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn-submit { background: var(--gradient); color: #fff; box-shadow: 0 4px 20px rgba(108,99,255,0.35); }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,99,255,0.5); }
+    .btn-cancel { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
+    .btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
+    .success-message { background: rgba(16,185,129,0.1); border: 1px solid #10B981; color: #10B981; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; display: none; }
+    .error-message { background: rgba(236,72,153,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; display: none; }
+    .admin-instructions { background: rgba(108,99,255,0.05); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 2rem; }
+    .admin-instructions h3 { color: var(--primary); margin-bottom: 0.75rem; }
+    .admin-instructions p { color: var(--text2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 0.5rem; }
+    @media (max-width: 768px) {
+      .form-row { grid-template-columns: 1fr; }
+      .admin-form-wrap { padding: 1.5rem; }
+      .form-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body data-page="admin">
+
+<div id="preloader">
+  <div class="preloader-inner">
+    <div class="preloader-logo">PageTurner</div>
+    <div class="preloader-bar"></div>
+  </div>
+</div>
+
+<button id="backToTop" aria-label="Back to top">↑</button>
+
+<nav id="mainNav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">📚 PageTurner</a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="books.html" class="nav-link">Books</a>
+      <a href="admin.html" class="nav-link" style="color: var(--primary);">Admin</a>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-icon-btn" id="themeToggle" aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="books.html" class="btn btn-primary btn-sm">View Books</a>
+      <button id="hamburger" class="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div id="mobileMenu">
+  <a href="index.html" class="mobile-nav-link">🏠 Home</a>
+  <a href="books.html" class="mobile-nav-link">📚 Books</a>
+  <a href="admin.html" class="mobile-nav-link">⚙️ Admin</a>
+</div>
+
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>📚 Admin Panel</h1>
+    <p style="color: var(--text2);">Upload and manage books on PageTurner</p>
+  </div>
+
+  <div class="admin-form-wrap">
+    <div id="successMessage" class="success-message"></div>
+    <div id="errorMessage" class="error-message"></div>
+
+    <form id="bookUploadForm">
+      
+      <!-- BOOK DETAILS -->
+      <div class="form-section">
+        <h2>📖 Book Details</h2>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookTitle">Book Title *</label>
+            <input type="text" id="bookTitle" placeholder="e.g., Deep Learning Mastery" required>
+          </div>
+          <div class="form-group">
+            <label for="bookAuthor">Author Name *</label>
+            <input type="text" id="bookAuthor" placeholder="e.g., Dr. Sarah Chen" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookCategory">Category *</label>
+            <select id="bookCategory" required>
+              <option value="">-- Select Category --</option>
+              <option value="AI">AI & Machine Learning</option>
+              <option value="Programming">Programming</option>
+              <option value="Business">Business</option>
+              <option value="Finance">Finance</option>
+              <option value="Trading">Trading</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Productivity">Productivity</option>
+              <option value="Cyber Security">Cyber Security</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="bookRating">Rating (0-5) *</label>
+            <input type="number" id="bookRating" min="0" max="5" step="0.1" placeholder="4.8" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookReviews">Number of Reviews *</label>
+            <input type="number" id="bookReviews" placeholder="1234" required>
+          </div>
+          <div class="form-group">
+            <label for="bookPages">Number of Pages *</label>
+            <input type="number" id="bookPages" placeholder="450" required>
+          </div>
+        </div>
+
+        <div class="form-group form-row full">
+          <label for="bookDescription">Description *</label>
+          <textarea id="bookDescription" placeholder="Write a compelling description of the book..." required></textarea>
+        </div>
+      </div>
+
+      <!-- BOOK COVER -->
+      <div class="form-section">
+        <h2>🖼️ Book Cover Image</h2>
+        <p style="color: var(--text3); font-size: 0.9rem; margin-bottom: 1rem;">Upload a cover image (300x420px recommended, max 2MB)</p>
+        
+        <div class="file-input-wrap">
+          <label class="file-input-label" id="coverInputLabel" ondrop="handleCoverDrop(event)" ondragover="handleCoverDragOver(event)" ondragleave="handleCoverDragLeave(event)">
+            📤 Click to upload or drag & drop
+          </label>
+          <input type="file" id="coverInput" class="file-input" accept="image/*">
+        </div>
+        <div id="coverPreview" class="cover-preview"></div>
+      </div>
+
+      <!-- BOOK FILES -->
+      <div class="form-section">
+        <h2>📥 Book Files</h2>
+        <p style="color: var(--text3); font-size: 0.9rem; margin-bottom: 1rem;">Upload PDF, EPUB, or MOBI files (max 50MB each)</p>
+        
+        <div class="file-input-wrap">
+          <label class="file-input-label" id="booksInputLabel" ondrop="handleBooksDrop(event)" ondragover="handleBooksDragOver(event)" ondragleave="handleBooksDragLeave(event)">
+            📚 Click to upload or drag & drop files
+          </label>
+          <input type="file" id="booksInput" class="file-input" multiple accept=".pdf,.epub,.mobi">
+        </div>
+        <div id="filesPreview" class="file-preview"></div>
+      </div>
+
+
+
+      <!-- BADGE & FEATURED -->
+      <div class="form-section">
+        <h2>✨ Additional Info</h2>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookBadge">Badge (Optional)</label>
+            <select id="bookBadge">
+              <option value="">-- No Badge --</option>
+              <option value="Bestseller">Bestseller</option>
+              <option value="Popular">Popular</option>
+              <option value="Hot">Hot</option>
+              <option value="Trending">Trending</option>
+              <option value="New">New</option>
+              <option value="Updated">Updated</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="bookFeatured" style="padding-top: 2.2rem;">
+              <input type="checkbox" id="bookFeatured" style="width: auto; margin-right: 0.5rem;">
+              Featured on Home Page?
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">✅ Upload Book</button>
+        <button type="reset" class="btn-cancel">🔄 Clear Form</button>
+      </div>
+    </form>
+
+    <div class="admin-instructions">
+      <h3>ℹ️ How it works:</h3>
+      <p>✅ Fill in all book details</p>
+      <p>✅ Upload a cover image (300x420px recommended)</p>
+      <p>✅ Upload book files (PDF, EPUB, MOBI)</p>
+      <p>✅ Click "Upload Book" to save</p>
+      <p style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--primary); font-weight: 600;">📚 Your books are stored locally and will appear immediately on the website!</p>
+    </div>
+  </div>
+</div>
+
+<script src="books.js"></script>
+<script src="main.js"></script>
+<script>
+// Admin Panel Functions
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_COVER_SIZE = 2 * 1024 * 1024; // 2MB
+let uploadedCover = null;
+let uploadedBooks = [];
+let filesLoading = false;
+
+// Cover Image Handling
+document.getElementById('coverInput').addEventListener('change', handleCoverChange);
+document.getElementById('coverInputLabel').addEventListener('click', () => document.getElementById('coverInput').click());
+
+function handleCoverDragOver(e) {
+  e.preventDefault();
+  document.getElementById('coverInputLabel').classList.add('dragover');
+}
+
+function handleCoverDragLeave() {
+  document.getElementById('coverInputLabel').classList.remove('dragover');
+}
+
+function handleCoverDrop(e) {
+  e.preventDefault();
+  document.getElementById('coverInputLabel').classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    const dt = new DataTransfer();
+    dt.items.add(files[0]);
+    document.getElementById('coverInput').files = dt.files;
+    handleCoverChange();
+  }
+}
+
+function handleCoverChange() {
+  const file = document.getElementById('coverInput').files[0];
+  if (!file) return;
+  
+  if (file.size > MAX_COVER_SIZE) {
+    showError('Cover image must be smaller than 2MB');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    uploadedCover = { name: file.name, data: e.target.result };
+    const preview = `<img src="${uploadedCover.data}" alt="Cover" class="cover-img">`;
+    document.getElementById('coverPreview').innerHTML = preview;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Books File Handling
+document.getElementById('booksInput').addEventListener('change', handleBooksChange);
+document.getElementById('booksInputLabel').addEventListener('click', () => document.getElementById('booksInput').click());
+
+function handleBooksDragOver(e) {
+  e.preventDefault();
+  document.getElementById('booksInputLabel').classList.add('dragover');
+}
+
+function handleBooksDragLeave() {
+  document.getElementById('booksInputLabel').classList.remove('dragover');
+}
+
+function handleBooksDrop(e) {
+  e.preventDefault();
+  document.getElementById('booksInputLabel').classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    const dt = new DataTransfer();
+    Array.from(files).forEach(file => dt.items.add(file));
+    document.getElementById('booksInput').files = dt.files;
+    handleBooksChange();
+  }
+}
+
+function handleBooksChange() {
+  const files = document.getElementById('booksInput').files;
+  uploadedBooks = [];
+  
+  if (files.length === 0) {
+    displayUploadedFiles();
+    return;
+  }
+  
+  filesLoading = true;
+  let filesLoaded = 0;
+  
+  Array.from(files).forEach(file => {
+    if (file.size > MAX_FILE_SIZE) {
+      showError(`${file.name} is too large (max 50MB)`);
+      filesLoaded++;
+      if (filesLoaded === files.length) filesLoading = false;
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedBooks.push({ name: file.name, data: e.target.result, type: file.type });
+      filesLoaded++;
+      displayUploadedFiles();
+      if (filesLoaded === files.length) {
+        filesLoading = false;
+        console.log('All files loaded:', uploadedBooks);
+      }
+    };
+    reader.onerror = () => {
+      showError(`Failed to read ${file.name}`);
+      filesLoaded++;
+      if (filesLoaded === files.length) filesLoading = false;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function displayUploadedFiles() {
+  const preview = document.getElementById('filesPreview');
+  preview.innerHTML = uploadedBooks.map(file => `
+    <div class="file-item">
+      <span>📄</span>
+      <span class="file-name">${file.name}</span>
+      <span class="file-remove" onclick="removeUploadedBook('${file.name}')">✕</span>
+    </div>
+  `).join('');
+}
+
+function removeUploadedBook(name) {
+  uploadedBooks = uploadedBooks.filter(f => f.name !== name);
+  displayUploadedFiles();
+}
+
+// TOC Management
+function addTocItem() {
+  const container = document.getElementById('tocItems');
+  const row = document.createElement('div');
+  row.className = 'item-input-row';
+  row.innerHTML = `
+    <input type="text" class="toc-input" placeholder="New chapter">
+    <button type="button" onclick="removeTocItem(this)" class="file-remove">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeTocItem(btn) {
+  const items = document.querySelectorAll('#tocItems .item-input-row');
+  if (items.length > 3) btn.parentElement.remove();
+}
+
+// Learn Items Management
+function addLearnItem() {
+  const container = document.getElementById('learnItems');
+  const row = document.createElement('div');
+  row.className = 'item-input-row';
+  row.innerHTML = `
+    <input type="text" class="learn-input" placeholder="New learning point">
+    <button type="button" onclick="removeLearnItem(this)" class="file-remove">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeLearnItem(btn) {
+  const items = document.querySelectorAll('#learnItems .item-input-row');
+  if (items.length > 4) btn.parentElement.remove();
+}
+
+// Form Submission
+document.getElementById('bookUploadForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  // Check if files are still loading
+  if (filesLoading) {
+    showError('⏳ Please wait, files are still loading...');
+    return;
+  }
+  
+  // Validation
+  if (!uploadedCover) {
+    showError('Please upload a cover image');
+    return;
+  }
+  
+  if (uploadedBooks.length === 0) {
+    showError('Please upload at least one book file');
+    return;
+  }
+  
+  // Create book object
+  const newId = Math.max(...BOOKS.map(b => b.id), 0) + 1;
+  const newBook = {
+    id: newId,
+    title: document.getElementById('bookTitle').value,
+    author: document.getElementById('bookAuthor').value,
+    category: document.getElementById('bookCategory').value,
+    price: 0,
+    rating: parseFloat(document.getElementById('bookRating').value),
+    reviews: parseInt(document.getElementById('bookReviews').value),
+    format: uploadedBooks.map(b => b.name.split('.').pop().toUpperCase()),
+    pages: parseInt(document.getElementById('bookPages').value),
+    cover: uploadedCover.data,
+    description: document.getElementById('bookDescription').value,
+    badge: document.getElementById('bookBadge').value || null,
+    featured: document.getElementById('bookFeatured').checked,
+    toc: [],
+    learn: [],
+    files: uploadedBooks
+  };
+  
+  // Save to localStorage
+  BOOKS.push(newBook);
+  localStorage.setItem('pageturner_books', JSON.stringify(BOOKS));
+  
+  showSuccess(`✅ "${newBook.title}" uploaded successfully! It will appear on the website immediately.`);
+  
+  // Reset form
+  setTimeout(() => {
+    document.getElementById('bookUploadForm').reset();
+    document.getElementById('coverPreview').innerHTML = '';
+    document.getElementById('filesPreview').innerHTML = '';
+    uploadedCover = null;
+    uploadedBooks = [];
+    filesLoading = false;
+  }, 2000);
+});
+
+// Message helpers
+function showSuccess(msg) {
+  const el = document.getElementById('successMessage');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMessage');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+// Load books from localStorage on page load
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('pageturner_books');
+  if (saved) {
+    try {
+      const books = JSON.parse(saved);
+      BOOKS.splice(0, BOOKS.length, ...books);
+    } catch (e) {
+      console.error('Error loading books:', e);
+    }
+  }
+});
+</script>
+
+</body>
+</html>

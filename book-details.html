@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Details — PageTurner</title>
+  <meta id="metaDesc" name="description" content="Premium digital book — instant download, lifetime access.">
+  <meta property="og:title" content="Book Details — PageTurner">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Extra details-page styles */
+    .details-tabs { display:flex; gap:0.5rem; border-bottom:1px solid var(--border); margin-bottom:2rem; }
+    .details-tab { padding:0.6rem 1.1rem; font-size:0.88rem; font-weight:600; color:var(--text3); border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .2s,border-color .2s; cursor:pointer; }
+    .details-tab.active { color:var(--primary); border-color:var(--primary); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    .review-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem; margin-bottom:1rem; }
+    .review-header { display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem; }
+    .review-avatar { width:38px; height:38px; border-radius:50%; object-fit:cover; }
+    .review-name { font-weight:700; font-size:0.88rem; }
+    .review-date { font-size:0.75rem; color:var(--text3); }
+    .review-stars { color:#FBBF24; font-size:0.8rem; letter-spacing:1px; }
+    .review-text { font-size:0.87rem; color:var(--text2); line-height:1.7; }
+    .format-badges { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+    .format-badge { padding:0.25rem 0.65rem; border-radius:7px; font-size:0.75rem; font-weight:700; background:var(--surface2); border:1px solid var(--border); color:var(--text2); }
+    .guarantee-box { background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:1rem 1.25rem; display:flex; align-items:center; gap:0.75rem; margin-top:1rem; }
+    .guarantee-box p { font-size:0.82rem; color:var(--text2); }
+    .guarantee-box strong { color:#10B981; }
+    .rating-breakdown { margin-bottom:1.5rem; }
+    .rating-bar-row { display:flex; align-items:center; gap:0.75rem; margin-bottom:0.4rem; }
+    .rating-bar-label { font-size:0.78rem; color:var(--text3); width:20px; text-align:right; }
+    .rating-bar-track { flex:1; height:6px; background:var(--surface3); border-radius:3px; overflow:hidden; }
+    .rating-bar-fill { height:100%; background:var(--gradient); border-radius:3px; }
+    .rating-bar-pct { font-size:0.75rem; color:var(--text3); width:30px; }
+    .share-row { display:flex; align-items:center; gap:0.5rem; margin-top:1rem; }
+    .share-row span { font-size:0.82rem; color:var(--text3); }
+    .share-btn { padding:0.3rem 0.7rem; border-radius:7px; font-size:0.75rem; font-weight:600; background:var(--surface2); border:1px solid var(--border); color:var(--text2); transition:all .2s; }
+    .share-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+  </style>
+</head>
+<body data-page="book-details">
+
+<div id="preloader">
+  <div class="preloader-inner">
+    <div class="preloader-logo">PageTurner</div>
+    <div class="preloader-bar"></div>
+  </div>
+</div>
+
+<button id="backToTop" aria-label="Back to top">↑</button>
+
+<!-- Search Modal -->
+<div id="searchModal" role="dialog" aria-modal="true">
+  <div class="search-box">
+    <div class="search-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="Search books…" autocomplete="off">
+      <button class="search-close" onclick="closeSearch()">✕</button>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="previewModal">
+  <div class="preview-box">
+    <div class="preview-header">
+      <div class="preview-title-wrap">📖 Free Preview — <span class="preview-title"></span></div>
+      <button class="preview-close" onclick="closePreviewModal()">✕</button>
+    </div>
+    <div class="preview-content">
+      <img class="preview-img" src="" alt="Book Preview">
+      <div>
+        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);font-weight:700;margin-bottom:.5rem;">About this book</div>
+        <p class="preview-desc"></p>
+      </div>
+    </div>
+    <div class="preview-sample">
+      <strong style="color:var(--text);display:block;margin-bottom:.5rem;">📄 Sample Excerpt — Chapter 1</strong>
+      In an era defined by rapid technological change, the ability to learn and adapt is the most valuable skill you can possess. This book distills years of research and real-world experience into a practical framework you can apply immediately. Whether you're a beginner or a seasoned professional, the principles inside will accelerate your growth and give you a decisive edge…
+    </div>
+  </div>
+</div>
+
+<!-- Navbar -->
+<nav id="mainNav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">📚 PageTurner</a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="books.html" class="nav-link">Books</a>
+      <a href="about.html" class="nav-link">About</a>
+      <a href="contact.html" class="nav-link">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="openSearch()" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="nav-icon-btn" id="themeToggle" aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="nav-icon-btn" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="cart-count">0</span>
+      </button>
+      <button id="hamburger" class="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div id="mobileMenu">
+  <a href="index.html" class="mobile-nav-link">🏠 Home</a>
+  <a href="books.html" class="mobile-nav-link">📚 Books</a>
+  <a href="about.html" class="mobile-nav-link">ℹ️ About</a>
+  <a href="contact.html" class="mobile-nav-link">✉️ Contact</a>
+</div>
+
+<!-- Details Hero -->
+<div class="details-hero">
+  <div class="container">
+    <nav class="details-breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span>›</span>
+      <a href="books.html">Books</a>
+      <span>›</span>
+      <span id="detailBreadcrumbTitle" style="color:var(--text2);">Book Details</span>
+    </nav>
+    <div class="details-grid">
+      <!-- Cover -->
+      <div class="details-cover-wrap">
+        <div class="details-cover">
+          <img id="detailCover" src="" alt="Book Cover">
+        </div>
+        <div class="format-badges" style="margin-top:1rem;">
+          <span class="format-badge">📄 PDF</span>
+          <span class="format-badge">📱 EPUB</span>
+          <span class="format-badge">📖 MOBI</span>
+        </div>
+        <div class="details-cover-actions">
+          <button id="detailBuyBtn" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
+            🛒 Buy Now — <span id="detailPriceBtnLabel"></span>
+          </button>
+          <div style="display:flex;gap:0.5rem;">
+            <button id="detailWishlistBtn" class="btn btn-outline" style="flex:1;justify-content:center;">♡ Wishlist</button>
+            <button id="detailPreviewBtn" class="btn btn-outline" style="flex:1;justify-content:center;">👁 Preview</button>
+          </div>
+        </div>
+        <div class="details-cover-meta">
+          <div class="meta-row"><span class="meta-label">📄 Pages</span><span class="meta-val" id="detailPages">—</span></div>
+          <div class="meta-row"><span class="meta-label">📁 Formats</span><span class="meta-val" id="detailFormats">—</span></div>
+          <div class="meta-row"><span class="meta-label">🌐 Language</span><span class="meta-val">English</span></div>
+          <div class="meta-row"><span class="meta-label">♻️ Updated</span><span class="meta-val">2025 Edition</span></div>
+        </div>
+        <div class="guarantee-box">
+          <span style="font-size:1.4rem;">🛡️</span>
+          <p><strong>30-Day Money-Back Guarantee.</strong> Not happy? We'll refund you, no questions asked.</p>
+        </div>
+        <div class="share-row">
+          <span>Share:</span>
+          <button class="share-btn" onclick="shareBook('twitter')">𝕏 Twitter</button>
+          <button class="share-btn" onclick="shareBook('linkedin')">LinkedIn</button>
+          <button class="share-btn" onclick="copyLink()">🔗 Copy Link</button>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="details-info">
+        <div class="details-badge">
+          <span id="detailBadge" class="badge" style="background:var(--gradient);color:#fff;"></span>
+        </div>
+        <h1 class="details-title" id="detailTitle">Loading…</h1>
+        <p class="details-author" id="detailAuthor"></p>
+        <div class="details-rating-row">
+          <div class="book-rating" id="detailRatingStars"></div>
+          <span class="rating-num" id="detailRatingNum"></span>
+          <span class="rating-count" id="detailReviewCount"></span>
+          <span class="details-cat-tag" id="detailCategory"></span>
+        </div>
+        <div class="details-price-row">
+          <span class="details-price" id="detailPrice"></span>
+          <span class="details-original" id="detailOriginal"></span>
+          <span class="details-discount" id="detailDiscount"></span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="details-tabs">
+          <button class="details-tab active" onclick="switchTab('overview',this)">Overview</button>
+          <button class="details-tab" onclick="switchTab('contents',this)">Contents</button>
+          <button class="details-tab" onclick="switchTab('reviews',this)">Reviews</button>
+        </div>
+
+        <!-- Tab: Overview -->
+        <div class="tab-panel active" id="tab-overview">
+          <p class="details-desc" id="detailDesc"></p>
+          <div class="details-section">
+            <h3>What You'll Learn</h3>
+            <ul class="learn-list" id="detailLearn"></ul>
+          </div>
+        </div>
+
+        <!-- Tab: Contents -->
+        <div class="tab-panel" id="tab-contents">
+          <div class="details-section" style="margin-bottom:0;">
+            <h3>Table of Contents</h3>
+            <div class="toc-list" id="detailTOC"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Reviews -->
+        <div class="tab-panel" id="tab-reviews">
+          <div class="rating-breakdown">
+            <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.25rem;">
+              <div style="text-align:center;">
+                <div style="font-size:3rem;font-weight:800;font-family:'Syne',sans-serif;" id="avgRatingBig">4.8</div>
+                <div class="book-rating" id="avgRatingStars" style="justify-content:center;margin:0.25rem 0;"></div>
+                <div style="font-size:0.78rem;color:var(--text3);" id="avgRatingCount">0 reviews</div>
+              </div>
+              <div style="flex:1;">
+                <div class="rating-bar-row"><span class="rating-bar-label">5</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:72%"></div></div><span class="rating-bar-pct">72%</span></div>
+                <div class="rating-bar-row"><span class="rating-bar-label">4</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:18%"></div></div><span class="rating-bar-pct">18%</span></div>
+                <div class="rating-bar-row"><span class="rating-bar-label">3</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:7%"></div></div><span class="rating-bar-pct">7%</span></div>
+                <div class="rating-bar-row"><span class="rating-bar-label">2</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:2%"></div></div><span class="rating-bar-pct">2%</span></div>
+                <div class="rating-bar-row"><span class="rating-bar-label">1</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:1%"></div></div><span class="rating-bar-pct">1%</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- Sample reviews -->
+          <div class="review-card reveal">
+            <div class="review-header">
+              <img class="review-avatar" src="https://i.pravatar.cc/80?img=7" alt="Reviewer">
+              <div>
+                <div class="review-name">Michael Torres</div>
+                <div class="review-date">March 2025</div>
+              </div>
+              <div class="review-stars" style="margin-left:auto;">★★★★★</div>
+            </div>
+            <p class="review-text">Absolutely phenomenal. This is the most comprehensive and up-to-date book I've ever read on this topic. Went from beginner to landing a senior role in 6 months. Cannot recommend enough!</p>
+          </div>
+          <div class="review-card reveal">
+            <div class="review-header">
+              <img class="review-avatar" src="https://i.pravatar.cc/80?img=22" alt="Reviewer">
+              <div>
+                <div class="review-name">Yuki Tanaka</div>
+                <div class="review-date">January 2025</div>
+              </div>
+              <div class="review-stars" style="margin-left:auto;">★★★★★</div>
+            </div>
+            <p class="review-text">Bought this on a Friday evening, finished it by Sunday. Every chapter is packed with actionable insight. The examples are brilliant and immediately applicable to real work.</p>
+          </div>
+          <div class="review-card reveal">
+            <div class="review-header">
+              <img class="review-avatar" src="https://i.pravatar.cc/80?img=35" alt="Reviewer">
+              <div>
+                <div class="review-name">Claudia Reyes</div>
+                <div class="review-date">February 2025</div>
+              </div>
+              <div class="review-stars" style="margin-left:auto;">★★★★☆</div>
+            </div>
+            <p class="review-text">Very well written and clearly structured. A couple of chapters could be a bit more in-depth, but overall this is a stellar resource that I keep coming back to as a reference.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Related Books -->
+<section class="section" style="background:var(--bg2);">
+  <div class="container">
+    <div class="section-header reveal">
+      <h2>You Might Also <span class="gradient-text">Like</span></h2>
+      <p>More books in the same category</p>
+    </div>
+    <div class="books-grid" id="relatedGrid"></div>
+  </div>
+</section>
+
+<!-- Sticky Buy Button -->
+<div class="sticky-buy" id="stickyBuy">
+  <div class="sticky-buy-info">
+    <span class="sticky-buy-title" id="stickyTitle">Loading…</span>
+    <span class="sticky-buy-price" id="stickyPrice"></span>
+  </div>
+  <div style="display:flex;gap:0.75rem;align-items:center;">
+    <div class="format-badges" style="margin:0;">
+      <span class="format-badge">PDF</span>
+      <span class="format-badge">EPUB</span>
+    </div>
+    <button id="detailBuyBtnSticky" class="btn btn-primary">🛒 Buy Now</button>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">📚 PageTurner</div>
+        <p>The premier destination for digital books on technology, business, and personal growth.</p>
+        <div class="footer-social">
+          <a href="#" class="social-btn">𝕏</a><a href="#" class="social-btn">in</a>
+          <a href="#" class="social-btn">📷</a><a href="#" class="social-btn">▶</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Categories</h4>
+        <div class="footer-links">
+          <a href="books.html?category=AI">AI & ML</a>
+          <a href="books.html?category=Programming">Programming</a>
+          <a href="books.html?category=Trading">Trading</a>
+          <a href="books.html?category=Finance">Finance</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <div class="footer-links">
+          <a href="about.html">About Us</a>
+          <a href="contact.html">Contact</a>
+          <a href="#">Blog</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <div class="footer-links">
+          <a href="contact.html">FAQ</a>
+          <a href="#">Refund Policy</a>
+          <a href="#">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 PageTurner. All rights reserved.</p>
+      <div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div>
+    </div>
+  </div>
+</footer>
+
+<script src="books.js"></script>
+<script src="main.js"></script>
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.details-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+function shareBook(platform) {
+  const url = encodeURIComponent(window.location.href);
+  const title = encodeURIComponent(document.getElementById('detailTitle').textContent);
+  if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=${title}&url=${url}`, '_blank');
+  else if (platform === 'linkedin') window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}`, '_blank');
+}
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => showToast('🔗 Link copied to clipboard!'));
+}
+// Sticky buy visibility
+window.addEventListener('scroll', () => {
+  const sticky = document.getElementById('stickyBuy');
+  if (!sticky) return;
+  const buyBtn = document.getElementById('detailBuyBtn');
+  if (!buyBtn) return;
+  const rect = buyBtn.getBoundingClientRect();
+  sticky.classList.toggle('visible', rect.bottom < 0);
+});
+// Populate sticky after page load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const title = document.getElementById('detailTitle')?.textContent;
+    const price = document.getElementById('detailPrice')?.textContent;
+    if (title) document.getElementById('stickyTitle').textContent = title;
+    if (price) document.getElementById('stickyPrice').textContent = price;
+    const btn = document.getElementById('detailBuyBtn');
+    if (btn) {
+      const priceSpan = document.getElementById('detailPriceBtnLabel');
+      const p = document.getElementById('detailPrice')?.textContent;
+      if (priceSpan && p) priceSpan.textContent = p;
+    }
+    // avg rating
+    const ratingNum = document.getElementById('detailRatingNum')?.textContent;
+    const reviewCount = document.getElementById('detailReviewCount')?.textContent;
+    if (ratingNum) {
+      document.getElementById('avgRatingBig').textContent = ratingNum;
+      document.getElementById('avgRatingCount').textContent = reviewCount;
+      document.getElementById('avgRatingStars').innerHTML = renderStars(parseFloat(ratingNum));
+    }
+    // breadcrumb
+    const t = document.getElementById('detailTitle')?.textContent;
+    if (t) document.getElementById('detailBreadcrumbTitle').textContent = t;
+  }, 200);
+});
+</script>
+</body>
+</html>
